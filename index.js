@@ -51,7 +51,7 @@ app.all('/', (req, res) => {
         message: 'Welcome to PIZZA API',
     })
 })
-
+app.use("/users", require('./src/routes/user'))
 
 /* ------------------------------------------------------- */
 
