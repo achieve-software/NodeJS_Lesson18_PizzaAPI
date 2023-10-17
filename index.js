@@ -32,11 +32,25 @@ dbConnection()
 /* ------------------------------------------------------- */
 // Middlewares:
 
+//Accept JSON
+app.use(express.json())
+
+// Run Logger:
+app.use(require('./src/middlewares/logger'))
 
 
+
+// res.getModelList():
+app.use(require('./src/middlewares/findSearchSortPage'))
 /* ------------------------------------------------------- */
 // Routes:
-
+// HomePath:
+app.all('/', (req, res) => {
+    res.send({
+        error: false,
+        message: 'Welcome to PIZZA API',
+    })
+})
 
 
 /* ------------------------------------------------------- */
