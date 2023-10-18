@@ -28,11 +28,13 @@ const OrderSchema = new mongoose.Schema({
 
     quantity: {
         type: Number,
+        default:1,
         required: true,
     },
 
     price: {
         type: Number,
+        default:0,
         required: true,
     },
 
