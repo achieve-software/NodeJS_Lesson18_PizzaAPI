@@ -45,16 +45,10 @@ module.exports = {
           //     },
           //   });
           const data = {
-            access: jwt.sign(user, process.env.ACCESS_KEY, {
-              expiresIn: "10m",
-            }),
-            refresh: jwt.sign(
-              { _id: user._id, password: user.password },
-              process.env.REFRESH_KEY,
-              { expiresIn: "3d" }
-            ),
+            access: user.toJSON(),
+            refresh: { _id: user._id, password: user.password },
             shortExpiresIn: "10m",
-            longExpiresIn: "30d",
+            longExpiresIn: "3d",
           };
 
           res.send({
@@ -84,20 +78,85 @@ module.exports = {
   },
   refresh: async (req, res) => {
     /*
-            #swagger.tags = ['Authentication']
-            #swagger.summary = 'Token Refresh'
-            #swagger.description = 'Refresh accessToken with refreshToken'
-            #swagger.parameters['body'] = {
-                in: 'body',
-                required: true,
-                schema: {
-                    token: {
-                        refresh: '...refreshToken...'
-                    }
+        #swagger.tags = ['Authentication']
+        #swagger.summary = 'Token Refresh'
+        #swagger.description = 'Refresh accessToken with refreshToken'
+        #swagger.parameters['body'] = {
+            in: 'body',
+            required: true,
+            schema: {
+                token: {
+                    refresh: '...refreshToken...'
                 }
             }
-        */
-  },
+        }
+    */
+
+    const refreshToken = req.body?.token?.refresh
+
+    if (refreshToken) {
+
+        jwt.verify(refreshToken, process.env.REFRESH_KEY, async function (err, userData) {
+
+            if (err) {
+
+                res.errorStatusCode = 401
+                throw err
+            } else {
+
+                const { _id, password } = userData
+
+                if (_id && password) {
+
+                    const user = await User.findOne({ _id })
+
+                    if (user && user.password == password) {
+
+                        if (user.isActive) {
+
+                            // const data = {
+                            //     access: user.toJSON(),
+                            //     refresh: { _id: user._id, password: user.password },
+                            //     shortExpiresIn: '10m',
+                            //     longExpiresIn: '3d'
+                            // }
+
+                            // res.send({
+                            //     error: false,
+                            //     token: {
+                            //         access: jwt.sign(data.access, process.env.ACCESS_KEY, { expiresIn: data.shortExpiresIn }),
+                            //         refresh: null
+                            //     }
+                            // })
+
+                            res.send({
+                                error: false,
+                                token: setToken(user, true)
+                            })
+
+                        } else {
+
+                            res.errorStatusCode = 401
+                            throw new Error('This account is not active.')
+                        }
+                    } else {
+
+                        res.errorStatusCode = 401
+                        throw new Error('Wrong id or password.')
+                    }
+                } else {
+
+                    res.errorStatusCode = 401
+                    throw new Error('Please enter id and password.')
+                }
+            }
+        })
+
+    } else {
+        res.errorStatusCode = 401
+        throw new Error('Please enter token.refresh')
+    }
+},
 
   logout: async (req, res) => {
     /*
