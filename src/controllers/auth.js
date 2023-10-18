@@ -158,11 +158,17 @@ module.exports = {
     }
 },
 
-  logout: async (req, res) => {
+logout: async (req, res) => {
     /*
-            #swagger.tags = ['Authentication']
-            #swagger.summary = 'Logout'
-            #swagger.description = 'No need any doing for logout. You must deleted Bearer Token from your browser.'
-        */
-  },
+        #swagger.tags = ['Authentication']
+        #swagger.summary = 'Logout'
+        #swagger.description = 'No need any doing for logout. You must deleted Bearer Token from your browser.'
+    */
+
+    res.send({
+        error: false,
+        message: 'No need any doing for logout. You must deleted Bearer Token from your browser.'
+    })
+
+},
 };
