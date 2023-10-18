@@ -1,14 +1,18 @@
-"use strict";
+"use strict"
 /* -------------------------------------------------------
     NODEJS EXPRESS | CLARUSWAY FullStack Team
 ------------------------------------------------------- */
+// Auth Controller:
 
-const jwt = require("jsonwebtoken");
-const User = require("../models/user");
+const jwt = require('jsonwebtoken')
+const setToken = require('../helpers/setToken')
+
+const User = require('../models/user')
 
 module.exports = {
-  login: async (req, res) => {
-    /*
+
+    login: async (req, res) => {
+        /*
             #swagger.tags = ['Authentication']
             #swagger.summary = 'Login'
             #swagger.description = 'Login with username and password'
@@ -24,151 +28,154 @@ module.exports = {
             }
         */
 
-    const { username, password } = req.body;
+        const { username, password } = req.body
 
-    if (username && password) {
-      const user = User.findOne({ username, password });
+        if (username && password) {
 
-      if (user) {
-        if (user.isActive) {
-          //   res.send({
-          //     error: false,
-          //     token: {
-          //       access: jwt.sign(user, process.env.ACCESS_KEY, {
-          //         expiresIn: "10m",
-          //       }),
-          //       refresh: jwt.sign(
-          //         { _id: user._id, password: user.password },
-          //         process.env.REFRESH_KEY,
-          //         { expiresIn: "3d" }
-          //       ),
-          //     },
-          //   });
-          const data = {
-            access: user.toJSON(),
-            refresh: { _id: user._id, password: user.password },
-            shortExpiresIn: "10m",
-            longExpiresIn: "3d",
-          };
+            const user = await User.findOne({ username, password })
 
-          res.send({
-            error: false,
-            token: {
-              access: jwt.sign(data.access, process.env.ACCESS_KEY, {
-                expiresIn: data.shortExpiresIn,
-              }),
+            if (user) {
 
-              refresh: jwt.sign(data.refresh, process.env.REFRESH_KEY, {
-                expiresIn: data.longExpiresIn,
-              }),
-            },
-          });
-        } else {
-          res.errorStatusCode = 401;
-          throw new Error("This account is not active");
-        }
-      } else {
-        res.errorStatusCode = 401;
-        throw new Error("Wrong username or password");
-      }
-    } else {
-      res.errorStatusCode = 401;
-      throw new Error("Please enter username and password");
-    }
-  },
-  refresh: async (req, res) => {
-    /*
-        #swagger.tags = ['Authentication']
-        #swagger.summary = 'Token Refresh'
-        #swagger.description = 'Refresh accessToken with refreshToken'
-        #swagger.parameters['body'] = {
-            in: 'body',
-            required: true,
-            schema: {
-                token: {
-                    refresh: '...refreshToken...'
+                if (user.isActive) {
+
+                    // res.send({
+                    //     error: false,
+                    //     token: {
+                    //         access: jwt.sign(user.toJSON(), process.env.ACCESS_KEY, { expiresIn: '10m' }),
+                    //         refresh: jwt.sign({ _id: user._id, password: user.password }, process.env.REFRESH_KEY, { expiresIn: '3d' }),
+                    //     }
+                    // })
+
+                    // const data = {
+                    //     access: user.toJSON(),
+                    //     refresh: { _id: user._id, password: user.password },
+                    //     shortExpiresIn: '10m',
+                    //     longExpiresIn: '3d'
+                    // }
+
+                    // res.send({
+                    //     error: false,
+                    //     token: {
+                    //         access: jwt.sign(data.access, process.env.ACCESS_KEY, { expiresIn: data.shortExpiresIn }),
+                    //         refresh: jwt.sign(data.refresh, process.env.REFRESH_KEY, { expiresIn: data.longExpiresIn }),
+                    //     }
+                    // })
+
+                    res.send({
+                        error: false,
+                        token: setToken(user)
+                    })
+
+                } else {
+
+                    res.errorStatusCode = 401
+                    throw new Error('This account is not active.')
                 }
-            }
-        }
-    */
-
-    const refreshToken = req.body?.token?.refresh
-
-    if (refreshToken) {
-
-        jwt.verify(refreshToken, process.env.REFRESH_KEY, async function (err, userData) {
-
-            if (err) {
-
-                res.errorStatusCode = 401
-                throw err
             } else {
 
-                const { _id, password } = userData
+                res.errorStatusCode = 401
+                throw new Error('Wrong username or password.')
+            }
+        } else {
 
-                if (_id && password) {
+            res.errorStatusCode = 401
+            throw new Error('Please enter username and password.')
+        }
+    },
 
-                    const user = await User.findOne({ _id })
+    refresh: async (req, res) => {
+        /*
+            #swagger.tags = ['Authentication']
+            #swagger.summary = 'Token Refresh'
+            #swagger.description = 'Refresh accessToken with refreshToken'
+            #swagger.parameters['body'] = {
+                in: 'body',
+                required: true,
+                schema: {
+                    token: {
+                        refresh: '...refreshToken...'
+                    }
+                }
+            }
+        */
 
-                    if (user && user.password == password) {
+        const refreshToken = req.body?.token?.refresh
 
-                        if (user.isActive) {
+        if (refreshToken) {
 
-                            // const data = {
-                            //     access: user.toJSON(),
-                            //     refresh: { _id: user._id, password: user.password },
-                            //     shortExpiresIn: '10m',
-                            //     longExpiresIn: '3d'
-                            // }
+            jwt.verify(refreshToken, process.env.REFRESH_KEY, async function (err, userData) {
 
-                            // res.send({
-                            //     error: false,
-                            //     token: {
-                            //         access: jwt.sign(data.access, process.env.ACCESS_KEY, { expiresIn: data.shortExpiresIn }),
-                            //         refresh: null
-                            //     }
-                            // })
+                if (err) {
 
-                            res.send({
-                                error: false,
-                                token: setToken(user, true)
-                            })
+                    res.errorStatusCode = 401
+                    throw err
+                } else {
 
+                    const { _id, password } = userData
+
+                    if (_id && password) {
+
+                        const user = await User.findOne({ _id })
+
+                        if (user && user.password == password) {
+
+                            if (user.isActive) {
+
+                                // const data = {
+                                //     access: user.toJSON(),
+                                //     refresh: { _id: user._id, password: user.password },
+                                //     shortExpiresIn: '10m',
+                                //     longExpiresIn: '3d'
+                                // }
+
+                                // res.send({
+                                //     error: false,
+                                //     token: {
+                                //         access: jwt.sign(data.access, process.env.ACCESS_KEY, { expiresIn: data.shortExpiresIn }),
+                                //         refresh: null
+                                //     }
+                                // })
+
+                                res.send({
+                                    error: false,
+                                    token: setToken(user, true)
+                                })
+
+                            } else {
+
+                                res.errorStatusCode = 401
+                                throw new Error('This account is not active.')
+                            }
                         } else {
 
                             res.errorStatusCode = 401
-                            throw new Error('This account is not active.')
+                            throw new Error('Wrong id or password.')
                         }
                     } else {
 
                         res.errorStatusCode = 401
-                        throw new Error('Wrong id or password.')
+                        throw new Error('Please enter id and password.')
                     }
-                } else {
-
-                    res.errorStatusCode = 401
-                    throw new Error('Please enter id and password.')
                 }
-            }
+            })
+
+        } else {
+            res.errorStatusCode = 401
+            throw new Error('Please enter token.refresh')
+        }
+    },
+
+    logout: async (req, res) => {
+        /*
+            #swagger.tags = ['Authentication']
+            #swagger.summary = 'Logout'
+            #swagger.description = 'No need any doing for logout. You must deleted Bearer Token from your browser.'
+        */
+
+        res.send({
+            error: false,
+            message: 'No need any doing for logout. You must deleted Bearer Token from your browser.'
         })
 
-    } else {
-        res.errorStatusCode = 401
-        throw new Error('Please enter token.refresh')
-    }
-},
-
-logout: async (req, res) => {
-    /*
-        #swagger.tags = ['Authentication']
-        #swagger.summary = 'Logout'
-        #swagger.description = 'No need any doing for logout. You must deleted Bearer Token from your browser.'
-    */
-
-    res.send({
-        error: false,
-        message: 'No need any doing for logout. You must deleted Bearer Token from your browser.'
-    })
-
-},
-};
+    },
+}
