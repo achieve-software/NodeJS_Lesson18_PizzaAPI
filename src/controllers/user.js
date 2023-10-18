@@ -20,7 +20,7 @@ module.exports = {
     const data = await response.getModelList(User);
     res.status(200).send({
       error: false,
-      details: res.getModelListDetails(User),
+      details: await res.getModelListDetails(User),
       data,
     });
   },
