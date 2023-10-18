@@ -52,11 +52,18 @@ app.all('/', (req, res) => {
     })
 })
 
+// auth:
+app.use('/auth', require('./src/routes/auth'))
+
 // user:
 app.use("/users", require('./src/routes/user'))
 
 // topping:
 app.use('/toppings', require('./src/routes/topping'))
+// order:
+app.use('/orders', require('./src/routes/order'))
+// pizza:
+app.use('/pizzas', require('./src/routes/pizza'))
 
 /* ------------------------------------------------------- */
 
