@@ -78,7 +78,7 @@ module.exports = {
         ])
 
         res.status(200).send({
-            error: false,
+            error: true,
             data
         })
 
